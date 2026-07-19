@@ -1,11 +1,14 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { copy } from '@/lib/copy';
+import CheckoutEmbed from './CheckoutEmbed';
 
 const BASE_CHECKOUT_URL = "https://www.oriopay.app/p/15-napos-etrend";
+const CHECKOUT_SLUG = new URL(BASE_CHECKOUT_URL).pathname.split("/").filter(Boolean).pop();
 
 export default function Closing() {
   const [checkoutUrl, setCheckoutUrl] = useState(BASE_CHECKOUT_URL);
+  const [showCheckout, setShowCheckout] = useState(false);
   const { closing, finalCallToAction, lastChance, finalOffer } = copy;
 
   useEffect(() => {
@@ -48,6 +51,16 @@ export default function Closing() {
     }
   };
 
+  // Abre el checkout embebido debajo (sin redirección). InitiateCheckout al abrir.
+  const handleOpenCheckout = () => {
+    setShowCheckout(true);
+    handleBeginCheckout();
+    setTimeout(() => {
+      const el = document.getElementById("checkout-embed-anchor");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
+
   return (
     <>
       <section className="py-12 bg-[#7ED957]">
@@ -71,14 +84,20 @@ export default function Closing() {
             <p className="text-xl sm:text-2xl text-[#333]">{finalOffer.finalPriceLabel}</p>
             <p className="text-5xl sm:text-6xl font-extrabold text-[#7ED957] my-2">{finalOffer.finalPrice}</p>
             <p className="text-sm text-gray-600 mt-2">{finalOffer.paymentInfo}</p>
-            <a 
+            <button
+              type="button"
               id="last-cta-button"
-              href={checkoutUrl} 
-              onClick={handleBeginCheckout}
+              onClick={handleOpenCheckout}
               className="mt-8 inline-block w-full max-w-sm bg-[#7ED957] text-white text-xl sm:text-2xl font-bold py-4 sm:py-5 px-6 sm:px-8 rounded-full shadow-lg hover:bg-[#6cc34a] transition-colors duration-300 transform hover:scale-105"
             >
               {finalOffer.button}
-            </a>
+            </button>
+
+            {/* Checkout OrioPay — oculto hasta "Comprar"; se despliega aquí mismo.
+                Altura auto de OrioPay; ancho ~full en móvil. */}
+            <div id="checkout-embed-anchor" className="scroll-mt-24">
+              <CheckoutEmbed slug={CHECKOUT_SLUG} show={showCheckout} />
+            </div>
           </div>
         </div>
       </section>
